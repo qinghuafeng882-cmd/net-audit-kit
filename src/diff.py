@@ -3,9 +3,7 @@ from datetime import datetime
 from pathlib import Path
 import argparse
 
-
-def read_text(path: Path) -> list[str]:
-    return path.read_text(encoding="utf-8", errors="ignore").splitlines(keepends=True)
+from normalize import normalize_config
 
 
 def ensure_out_dir(date_str: str) -> Path:
@@ -55,8 +53,11 @@ def main():
         a_path = base_files[fname]
         b_path = curr_files[fname]
 
-        a_lines = read_text(a_path)
-        b_lines = read_text(b_path)
+        # 关键改动：读“全文”，然后 normalize 成 list[str]（每行以 \n 结尾）
+        a_text = a_path.read_text(encoding="utf-8", errors="ignore")
+        b_text = b_path.read_text(encoding="utf-8", errors="ignore")
+        a_lines = normalize_config(a_text)
+        b_lines = normalize_config(b_text)
 
         diff_text = unified_diff(
             a_lines, b_lines,
@@ -67,8 +68,10 @@ def main():
         out_file = out_dir / f"diff_{Path(fname).stem}.txt"
         out_file.write_text(diff_text, encoding="utf-8")
 
-        # quick change detection (ignores diff headers)
-        meaningful = [line for line in diff_text.splitlines() if line.startswith(("+", "-")) and not line.startswith(("+++","---"))]
+        meaningful = [
+            line for line in diff_text.splitlines()
+            if line.startswith(("+", "-")) and not line.startswith(("+++","---"))
+        ]
         if meaningful:
             changed += 1
 
