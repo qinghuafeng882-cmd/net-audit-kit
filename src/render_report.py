@@ -69,7 +69,7 @@ def main():
     if not diff_files:
         raise SystemExit("No diff_*.txt found. Run diff.py first.")
     
-    meta_path = out_dir / "diff_meta.txt"
+    meta_path = out_dir / "meta.txt"
     baseline = current = ""
     if meta_path.exists():
         for line in meta_path.read_text(encoding="utf-8").splitlines():
