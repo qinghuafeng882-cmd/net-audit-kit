@@ -75,7 +75,13 @@ def main():
         if meaningful:
             changed += 1
 
+
+
         print(f"[OK] wrote {out_file}")
+
+    meta = out_dir / "diff_meta.txt"
+    meta.write_text(f"baseline={args.baseline}\ncurrent={args.current}\n", encoding="utf-8")
+
 
     print(f"Done. Devices diffed={len(common)} Changed={changed}")
 

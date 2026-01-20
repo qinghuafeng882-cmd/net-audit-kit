@@ -24,6 +24,9 @@
   <div class="meta">
     生成时间：{{ run_at }}<br/>
     设备总数：{{ total }}，变更设备：{{ changed }}，未变更设备：{{ total - changed }}
+    对比基线：{{ baseline }}<br/>
+    对比当前：{{ current }}<br/>
+
   </div>
 
   <h2>设备概览</h2>
@@ -60,6 +63,16 @@
           {% else %}
             <span class="muted">无</span>
           {% endif %}
+        </td>
+        <td>
+          <details>
+            <summary>查看变更片段</summary>
+            {% if d.snippets %}
+            <pre>{{ d.snippets | join('\n') }}</pre>
+            {% else %}
+            <div class="muted">无</div>
+            {% endif %}
+          </details>
         </td>
         <td>
           <a href="{{ d.diff_file }}">{{ d.diff_file }}</a>

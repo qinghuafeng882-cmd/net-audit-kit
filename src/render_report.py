@@ -29,6 +29,17 @@ def count_diff_changes(diff_text: str) -> tuple[int, int]:
             removed += 1
     return added, removed
 
+def top_changes(diff_text: str, limit: int = 10) -> list[str]:
+    out = []
+    for line in diff_text.splitlines():
+        if line.startswith(("+++","---","@@")):
+            continue
+        if line.startswith(("+", "-")):
+            out.append(line)
+        if len(out) >= limit:
+            break
+    return out
+
 
 def detect_tags(diff_text: str) -> list[str]:
     tags = []
@@ -57,6 +68,16 @@ def main():
     diff_files = sorted(out_dir.glob("diff_*.txt"))
     if not diff_files:
         raise SystemExit("No diff_*.txt found. Run diff.py first.")
+    
+    meta_path = out_dir / "diff_meta.txt"
+    baseline = current = ""
+    if meta_path.exists():
+        for line in meta_path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("baseline="):
+                baseline = line.split("=", 1)[1]
+            if line.startswith("current="):
+                current = line.split("=", 1)[1]
+
 
     # 可选：从 facts.json 取 host 信息（如果没有也不阻塞）
     facts_host_map = {}
@@ -85,6 +106,7 @@ def main():
             "removed": removed,
             "tags": detect_tags(diff_text) if is_changed else [],
             "diff_file": p.name,
+            "snippets": top_changes(diff_text, limit=10) if is_changed else [],
         })
 
     env = Environment(loader=FileSystemLoader("templates"), autoescape=True)
@@ -94,6 +116,8 @@ def main():
         total=len(devices),
         changed=changed,
         devices=devices,
+        baseline=baseline, 
+        current=current,
     )
 
     report_path = out_dir / "report.html"
